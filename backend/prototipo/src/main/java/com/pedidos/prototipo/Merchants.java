@@ -1,3 +1,9 @@
+package com.pedidos.prototipo;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name="merchants")
 @Data // lombok

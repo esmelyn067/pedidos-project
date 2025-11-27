@@ -1,3 +1,12 @@
+package com.pedidos.prototipo;
+
+import org.springframework.web.bind.annotation.*;
+import org.springframework.http.*;
+import lombok.RequiredArgsConstructor;
+import java.util.List;
+import com.pedidos.prototipo.ProviderService;
+import com.pedidos.prototipo.Provider;
+
 @RestController
 @RequestMapping("/api/providers")
 @RequiredArgsConstructor
