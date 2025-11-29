@@ -4,7 +4,7 @@ package com.pedidos.prototipo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
-import com.pedidos.entities.Product;
+import com.pedidos.prototipo.Product;
 
 
 public interface ProductService {

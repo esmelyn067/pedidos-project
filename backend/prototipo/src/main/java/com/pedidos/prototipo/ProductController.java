@@ -1,7 +1,7 @@
 package com.pedidos.prototipo.controllers;
 
-import com.pedidos.prototipo.entities.Product;
-import com.pedidos.prototipo.services.ProductService;
+import com.pedidos.prototipo.Product;
+import com.pedidos.prototipo.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

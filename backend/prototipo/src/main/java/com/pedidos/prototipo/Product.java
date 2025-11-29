@@ -1,5 +1,8 @@
 package com.pedidos.prototipo;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.Builder;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;

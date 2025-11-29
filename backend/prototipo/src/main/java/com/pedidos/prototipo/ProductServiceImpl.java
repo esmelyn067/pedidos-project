@@ -1,8 +1,8 @@
 package com.pedidos.prototipo.services.impl;
 
-import com.pedidos.prototipo.entities.Product;
-import com.pedidos.prototipo.repositories.ProductRepository;
-import com.pedidos.prototipo.services.ProductService;
+import com.pedidos.prototipo.Product;
+import com.pedidos.prototipo.ProductRepository;
+import com.pedidos.prototipo.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
