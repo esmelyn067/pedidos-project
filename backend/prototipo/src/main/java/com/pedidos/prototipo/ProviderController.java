@@ -8,7 +8,7 @@ import com.pedidos.prototipo.ProviderService;
 import com.pedidos.prototipo.Provider;
 
 @RestController
-@RequestMapping("/api/providers")
+@RequestMapping("/providers")
 @RequiredArgsConstructor
 public class ProviderController {
     private final ProviderService svc;

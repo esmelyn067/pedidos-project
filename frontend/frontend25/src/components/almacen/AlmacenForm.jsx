@@ -1,68 +1,78 @@
-import { useState } from "react";
-import almacenesService from "../../api/almacenesService";
-import {
-  TextField,
-  Button,
-  Paper,
-  Typography,
-} from "@mui/material";
+import { useEffect } from "react";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import almacenesService from "./almacenesService";
+import { TextField, Button, Paper, Typography, Stack } from "@mui/material";
 
-export default function AlmacenForm({ onSuccess, onCancel }) {
-  const [form, setForm] = useState({
-    name: "",
-    location: ""
+export default function AlmacenForm({ editing, onSaved, onCancel }) {
+  const formik = useFormik({
+    initialValues: {
+      name: "",
+      location: ""
+    },
+    validationSchema: Yup.object({
+      name: Yup.string().required("El nombre es obligatorio"),
+      location: Yup.string().required("La ubicación es obligatoria")
+    }),
+    onSubmit: async (values, { resetForm }) => {
+      try {
+        if (editing) {
+          await almacenesService.update(editing.id, values);
+        } else {
+          await almacenesService.create(values);
+        }
+
+        resetForm();
+        onSaved && onSaved();
+      } catch (error) {
+        console.error("Error guardando almacén:", error);
+        alert("Error guardando el almacén");
+      }
+    }
   });
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await almacenesService.create(form);
-      onSuccess();
-    } catch (error) {
-      console.error("Error creando almacén:", error);
-    }
-  };
+  useEffect(() => {
+    if (editing) formik.setValues(editing);
+  }, [editing]);
 
   return (
-    <Paper sx={{ padding: 3 }}>
-      <Typography variant="h6" gutterBottom>
-        Registrar Almacén
+    <Paper sx={{ padding: 3, marginBottom: 2 }}>
+      <Typography variant="h6">
+        {editing ? "Editar Almacén" : "Registrar Almacén"}
       </Typography>
 
-      <form onSubmit={handleSubmit}>
-        <TextField
-          label="Nombre del Almacén"
-          fullWidth
-          margin="normal"
-          name="name"
-          value={form.name}
-          onChange={handleChange}
-        />
+      <form onSubmit={formik.handleSubmit}>
+        <Stack spacing={2} sx={{ marginTop: 2 }}>
+          <TextField
+            label="Nombre del Almacén"
+            name="name"
+            fullWidth
+            value={formik.values.name}
+            onChange={formik.handleChange}
+            error={formik.touched.name && Boolean(formik.errors.name)}
+            helperText={formik.touched.name && formik.errors.name}
+          />
 
-        <TextField
-          label="Ubicación"
-          fullWidth
-          margin="normal"
-          name="location"
-          value={form.location}
-          onChange={handleChange}
-        />
+          <TextField
+            label="Ubicación"
+            name="location"
+            fullWidth
+            value={formik.values.location}
+            onChange={formik.handleChange}
+            error={formik.touched.location && Boolean(formik.errors.location)}
+            helperText={formik.touched.location && formik.errors.location}
+          />
 
-        <Button type="submit" variant="contained" sx={{ mt: 2, mr: 1 }}>
-          Guardar
-        </Button>
+          <Stack direction="row" spacing={2}>
+            <Button variant="contained" type="submit">
+              Guardar
+            </Button>
 
-        <Button
-          variant="outlined"
-          sx={{ mt: 2 }}
-          onClick={onCancel}
-        >
-          Cancelar
-        </Button>
+            <Button variant="outlined" onClick={onCancel}>
+              Cancelar
+            </Button>
+          </Stack>
+        </Stack>
       </form>
     </Paper>
   );

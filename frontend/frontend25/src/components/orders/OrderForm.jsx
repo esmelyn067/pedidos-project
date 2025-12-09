@@ -1,108 +1,136 @@
-import { useState } from "react";
-import ordersService from "../../api/ordersService";
+import { useEffect } from "react";
+import { useFormik } from "formik";
+import * as Yup from "Yup";
+import ordersService from "./ordersService";
 import {
   TextField,
   Button,
   Paper,
   Typography,
-  MenuItem
+  MenuItem,
+  Stack
 } from "@mui/material";
 
-export default function OrderForm({ onSuccess, onCancel }) {
-  const [form, setForm] = useState({
-    orderNumber: "",
-    customerName: "",
-    status: "PENDING",
-    date: "",
-    total: ""
+export default function OrderForm({ editing, onSaved, onCancel }) {
+  const formik = useFormik({
+    initialValues: {
+      orderNumber: "",
+      customerName: "",
+      status: "PENDING",
+      date: "",
+      total: ""
+    },
+    validationSchema: Yup.object({
+      orderNumber: Yup.string().required("El número de orden es obligatorio"),
+      customerName: Yup.string().required("El nombre del cliente es obligatorio"),
+      date: Yup.string().required("La fecha es obligatoria"),
+      status: Yup.string().required("El estado es obligatorio"),
+      total: Yup.number()
+        .required("El total es obligatorio")
+        .positive("Debe ser mayor a 0")
+    }),
+    onSubmit: async (values, { resetForm }) => {
+      try {
+        const payload = {
+          ...values,
+          total: parseFloat(values.total)
+        };
+
+        if (editing) {
+          await ordersService.update(editing.id, payload);
+        } else {
+          await ordersService.create(payload);
+        }
+
+        resetForm();
+        onSaved();
+      } catch (err) {
+        console.error("Error guardando la orden:", err);
+        alert("Error guardando la orden");
+      }
+    }
   });
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      await ordersService.create({
-        ...form,
-        total: parseFloat(form.total)
-      });
-
-      onSuccess();
-    } catch (error) {
-      console.error("Error creando la orden:", error);
-    }
-  };
+  useEffect(() => {
+    if (editing) formik.setValues(editing);
+  }, [editing]);
 
   return (
-    <Paper sx={{ padding: 3 }}>
-      <Typography variant="h6" gutterBottom>
-        Registrar Orden
+    <Paper sx={{ padding: 3, marginBottom: 2 }}>
+      <Typography variant="h6">
+        {editing ? "Editar Orden" : "Registrar Orden"}
       </Typography>
 
-      <form onSubmit={handleSubmit}>
-        <TextField
-          label="Número de Orden"
-          fullWidth
-          margin="normal"
-          name="orderNumber"
-          value={form.orderNumber}
-          onChange={handleChange}
-        />
+      <form onSubmit={formik.handleSubmit}>
+        <Stack spacing={2} sx={{ marginTop: 2 }}>
 
-        <TextField
-          label="Cliente"
-          fullWidth
-          margin="normal"
-          name="customerName"
-          value={form.customerName}
-          onChange={handleChange}
-        />
+          <TextField
+            label="Número de Orden"
+            name="orderNumber"
+            fullWidth
+            value={formik.values.orderNumber}
+            onChange={formik.handleChange}
+            error={formik.touched.orderNumber && Boolean(formik.errors.orderNumber)}
+            helperText={formik.touched.orderNumber && formik.errors.orderNumber}
+          />
 
-        <TextField
-          label="Fecha"
-          type="date"
-          fullWidth
-          margin="normal"
-          name="date"
-          InputLabelProps={{ shrink: true }}
-          value={form.date}
-          onChange={handleChange}
-        />
+          <TextField
+            label="Cliente"
+            name="customerName"
+            fullWidth
+            value={formik.values.customerName}
+            onChange={formik.handleChange}
+            error={formik.touched.customerName && Boolean(formik.errors.customerName)}
+            helperText={formik.touched.customerName && formik.errors.customerName}
+          />
 
-        <TextField
-          label="Estado"
-          select
-          fullWidth
-          margin="normal"
-          name="status"
-          value={form.status}
-          onChange={handleChange}
-        >
-          <MenuItem value="PENDING">Pendiente</MenuItem>
-          <MenuItem value="PROCESSING">Procesando</MenuItem>
-          <MenuItem value="COMPLETED">Completado</MenuItem>
-        </TextField>
+          <TextField
+            label="Fecha"
+            type="date"
+            name="date"
+            fullWidth
+            InputLabelProps={{ shrink: true }}
+            value={formik.values.date}
+            onChange={formik.handleChange}
+            error={formik.touched.date && Boolean(formik.errors.date)}
+            helperText={formik.touched.date && formik.errors.date}
+          />
 
-        <TextField
-          label="Total"
-          type="number"
-          fullWidth
-          margin="normal"
-          name="total"
-          value={form.total}
-          onChange={handleChange}
-        />
+          <TextField
+            label="Estado"
+            name="status"
+            select
+            fullWidth
+            value={formik.values.status}
+            onChange={formik.handleChange}
+          >
+            <MenuItem value="PENDING">Pendiente</MenuItem>
+            <MenuItem value="PROCESSING">Procesando</MenuItem>
+            <MenuItem value="COMPLETED">Completado</MenuItem>
+          </TextField>
 
-        <Button type="submit" variant="contained" sx={{ mt: 2, mr: 1 }}>
-          Guardar
-        </Button>
+          <TextField
+            label="Total"
+            name="total"
+            type="number"
+            fullWidth
+            value={formik.values.total}
+            onChange={formik.handleChange}
+            error={formik.touched.total && Boolean(formik.errors.total)}
+            helperText={formik.touched.total && formik.errors.total}
+          />
 
-        <Button variant="outlined" sx={{ mt: 2 }} onClick={onCancel}>
-          Cancelar
-        </Button>
+          <Stack direction="row" spacing={2}>
+            <Button type="submit" variant="contained">
+              Guardar
+            </Button>
+
+            <Button variant="outlined" onClick={onCancel}>
+              Cancelar
+            </Button>
+          </Stack>
+
+        </Stack>
       </form>
     </Paper>
   );

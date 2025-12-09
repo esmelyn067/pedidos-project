@@ -1,4 +1,4 @@
-package com.pedidos.prototipo.config;
+package com.pedidos.prototipo;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

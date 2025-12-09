@@ -11,7 +11,7 @@ public class AlmacenService {
     @Autowired
     private AlmacenRepository almacenRepository;
 
-    public List<Almacen> getAllAlmacenes() {
+    public List<Almacen> getAllAlmacen() {
         return almacenRepository.findAll();
     }
 

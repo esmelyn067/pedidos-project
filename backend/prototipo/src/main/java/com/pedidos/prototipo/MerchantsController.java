@@ -9,7 +9,7 @@ import com.pedidos.prototipo.Merchants;
 
 
 @RestController
-@RequestMapping("/api/merchants")
+@RequestMapping("/merchants")
 @RequiredArgsConstructor
 
 

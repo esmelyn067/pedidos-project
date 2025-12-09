@@ -1,89 +1,93 @@
-import { useState } from "react";
-import merchantsService from "../../api/merchantsService";
-import { 
-  TextField, 
-  Button, 
-  Paper, 
-  Typography 
-} from "@mui/material";
+import React, { useEffect } from "react";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import { TextField, Button, Paper, Typography, Stack } from "@mui/material";
+import merchantsService from "./merchantsService";
 
-export default function MerchantForm({ onSuccess, onCancel }) {
-  const [form, setForm] = useState({
-    name: "",
-    address: "",
-    phone: "",
-    email: ""
+export default function MerchantForm({ editing, onSaved, onCancel }) {
+  const formik = useFormik({
+    initialValues: {
+      name: "",
+      address: "",
+      phone: "",
+      email: ""
+    },
+    validationSchema: Yup.object({
+      name: Yup.string().required("El nombre es obligatorio"),
+    }),
+    onSubmit: async (values, { resetForm }) => {
+      try {
+        if (editing) {
+          await merchantsService.update(editing.id, values);
+        } else {
+          await merchantsService.create(values);
+        }
+
+        resetForm();
+        onSaved && onSaved();
+      } catch (error) {
+        console.error("Error guardando comerciante:", error);
+        alert("Error guardando comerciante");
+      }
+    }
   });
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      await merchantsService.create(form);
-      onSuccess();
-    } catch (error) {
-      console.error("Error creando comerciante:", error);
-    }
-  };
+  useEffect(() => {
+    if (editing) formik.setValues(editing);
+  }, [editing]);
 
   return (
-    <Paper sx={{ padding: 3 }}>
+    <Paper sx={{ padding: 3, marginBottom: 2 }}>
       <Typography variant="h6" gutterBottom>
-        Registrar Comerciante
+        {editing ? "Editar Comerciante" : "Registrar Comerciante"}
       </Typography>
 
-      <form onSubmit={handleSubmit}>
-        <TextField
-          label="Nombre"
-          fullWidth
-          margin="normal"
-          name="name"
-          value={form.name}
-          onChange={handleChange}
-        />
+      <form onSubmit={formik.handleSubmit}>
+        <Stack spacing={2}>
+          <TextField
+            label="Nombre"
+            name="name"
+            value={formik.values.name}
+            onChange={formik.handleChange}
+            error={formik.touched.name && Boolean(formik.errors.name)}
+            helperText={formik.touched.name && formik.errors.name}
+            fullWidth
+          />
 
-        <TextField
-          label="Dirección"
-          fullWidth
-          margin="normal"
-          name="address"
-          value={form.address}
-          onChange={handleChange}
-        />
+          <TextField
+            label="Dirección"
+            name="address"
+            value={formik.values.address}
+            onChange={formik.handleChange}
+            fullWidth
+          />
 
-        <TextField
-          label="Teléfono"
-          fullWidth
-          margin="normal"
-          name="phone"
-          value={form.phone}
-          onChange={handleChange}
-        />
+          <TextField
+            label="Teléfono"
+            name="phone"
+            value={formik.values.phone}
+            onChange={formik.handleChange}
+            fullWidth
+          />
 
-        <TextField
-          label="Email"
-          fullWidth
-          margin="normal"
-          name="email"
-          value={form.email}
-          onChange={handleChange}
-        />
+          <TextField
+            label="Email"
+            name="email"
+            value={formik.values.email}
+            onChange={formik.handleChange}
+            fullWidth
+          />
 
-        <Button 
-          type="submit" 
-          variant="contained" 
-          sx={{ mt: 2, mr: 1 }}
-        >
-          Guardar
-        </Button>
+          <Stack direction="row" spacing={2}>
+            <Button variant="contained" type="submit">
+              Guardar
+            </Button>
 
-        <Button variant="outlined" sx={{ mt: 2 }} onClick={onCancel}>
-          Cancelar
-        </Button>
+            <Button variant="outlined" onClick={onCancel}>
+              Cancelar
+            </Button>
+          </Stack>
+        </Stack>
       </form>
     </Paper>
   );

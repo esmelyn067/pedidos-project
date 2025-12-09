@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import productsService from "../../api/productsService";
+import productsService from "../../components/products/productsService";
 import {
   Paper,
   Typography,

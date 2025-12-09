@@ -1,55 +1,101 @@
 import { useEffect, useState } from "react";
-import invoicesService from "../../api/invoicesService";
+import invoicesService from "./invoicesService";
 import {
   Paper,
   Typography,
   Button,
-  List,
-  ListItem,
-  ListItemText,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  Stack
 } from "@mui/material";
 
-export default function InvoiceList({ onSelect, onCreate }) {
-  const [invoices, setInvoices] = useState([]);
+import InvoiceForm from "./InvoiceForm";
 
-  const loadData = async () => {
+export default function InvoiceList() {
+  const [invoices, setInvoices] = useState([]);
+  const [editing, setEditing] = useState(null);
+
+  const load = async () => {
     try {
       const res = await invoicesService.getAll();
       setInvoices(res.data);
     } catch (error) {
-      console.error("Error loading invoices:", error);
+      console.error("Error cargando facturas:", error);
     }
   };
 
   useEffect(() => {
-    loadData();
+    load();
   }, []);
+
+  const remove = async (id) => {
+    if (!window.confirm("¿Eliminar factura?")) return;
+
+    try {
+      await invoicesService.delete(id);
+      load();
+    } catch (error) {
+      console.error("Error borrando factura:", error);
+    }
+  };
 
   return (
     <Paper sx={{ padding: 3 }}>
-      <Typography variant="h5" gutterBottom>
-        Facturas
+      <Typography variant="h4" gutterBottom>
+        Gestión de Facturas
       </Typography>
 
-      <Button variant="contained" onClick={onCreate} sx={{ mb: 2 }}>
-        Nueva Factura
-      </Button>
+      <InvoiceForm
+        editing={editing}
+        onSaved={() => {
+          setEditing(null);
+          load();
+        }}
+        onCancel={() => setEditing(null)}
+      />
 
-      <List>
-        {invoices.map((invoice) => (
-          <ListItem
-            key={invoice.id}
-            divider
-            button
-            onClick={() => onSelect(invoice)}
-          >
-            <ListItemText
-              primary={`Factura #${invoice.invoiceNumber}`}
-              secondary={`Fecha: ${invoice.date} | Total: ${invoice.totalAmount}`}
-            />
-          </ListItem>
-        ))}
-      </List>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>N° Factura</TableCell>
+            <TableCell>Fecha</TableCell>
+            <TableCell>Total</TableCell>
+            <TableCell>Acciones</TableCell>
+          </TableRow>
+        </TableHead>
+
+        <TableBody>
+          {invoices.map((inv) => (
+            <TableRow key={inv.id}>
+              <TableCell>{inv.invoiceNumber}</TableCell>
+              <TableCell>{inv.date}</TableCell>
+              <TableCell>{inv.totalAmount}</TableCell>
+
+              <TableCell>
+                <Stack direction="row" spacing={1}>
+                  <Button
+                    variant="outlined"
+                    onClick={() => setEditing(inv)}
+                  >
+                    Editar
+                  </Button>
+
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={() => remove(inv.id)}
+                  >
+                    Eliminar
+                  </Button>
+                </Stack>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </Paper>
   );
 }

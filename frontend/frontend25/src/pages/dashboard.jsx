@@ -1,16 +1,24 @@
 import { useEffect, useState } from "react";
-import { Grid, Paper, Typography } from "@mui/material";
+import {
+  Grid,
+  Paper,
+  Typography,
+  Box
+} from "@mui/material";
+
 import WarehouseIcon from "@mui/icons-material/Warehouse";
 import StoreIcon from "@mui/icons-material/Store";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
+import ReceiptIcon from "@mui/icons-material/Receipt";
 
-import providersService from "../api/providersService";
-import merchantsService from "../api/merchantsService";
-import almacenesService from "../api/almacenesService";
-import productsService from "../api/productsService";
-import ordersService from "../api/ordersService";
+import providersService from "../components/Providers/providerService";
+import merchantsService from "../components/merchants/merchantsService";
+import almacenesService from "../components/almacen/almacenesService";
+import productsService from "../components/products/productsService";
+import ordersService from "../components/orders/ordersService";
+import invoicesService from "../components/invoices/invoicesService";
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -19,16 +27,25 @@ export default function Dashboard() {
     almacenes: 0,
     productos: 0,
     pedidos: 0,
+    facturas: 0,
   });
 
   const loadStats = async () => {
     try {
-      const [prov, merc, almac, prod, ord] = await Promise.all([
+      const [
+        prov,
+        merc,
+        almac,
+        prod,
+        ord,
+        inv,
+      ] = await Promise.all([
         providersService.getAll(),
         merchantsService.getAll(),
         almacenesService.getAll(),
-        productsService?.getAll?.() ?? { data: [] }, // POR SI AÚN NO EXISTE
+        productsService?.getAll?.() ?? { data: [] },
         ordersService?.getAll?.() ?? { data: [] },
+        invoicesService?.getAll?.() ?? { data: [] },
       ]);
 
       setStats({
@@ -37,6 +54,7 @@ export default function Dashboard() {
         almacenes: almac.data.length,
         productos: prod.data.length,
         pedidos: ord.data.length,
+        facturas: inv.data.length,
       });
     } catch (error) {
       console.error("Error cargando estadísticas del dashboard", error);
@@ -47,73 +65,61 @@ export default function Dashboard() {
     loadStats();
   }, []);
 
-  const cardStyle = {
-    padding: "20px",
-    display: "flex",
-    alignItems: "center",
-    gap: "20px",
-  };
+  const Card = ({ title, value, icon }) => (
+    <Paper
+      sx={{
+        padding: 3,
+        display: "flex",
+        alignItems: "center",
+        gap: 2,
+        transition: "0.3s",
+        cursor: "pointer",
+        "&:hover": {
+          transform: "scale(1.02)",
+          boxShadow: 6,
+        },
+      }}
+    >
+      <Box sx={{ fontSize: 60, opacity: 0.8 }}>{icon}</Box>
+
+      <Box>
+        <Typography variant="h6">{title}</Typography>
+        <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+          {value}
+        </Typography>
+      </Box>
+    </Paper>
+  );
 
   return (
     <>
-      <Typography variant="h4" gutterBottom sx={{ mb: 3 }}>
+      <Typography variant="h4" gutterBottom sx={{ mb: 3, fontWeight: "bold" }}>
         Panel Principal
       </Typography>
 
       <Grid container spacing={3}>
-        {/* Proveedores */}
         <Grid item xs={12} sm={6} md={4}>
-          <Paper sx={cardStyle}>
-            <LocalShippingIcon sx={{ fontSize: 50 }} />
-            <div>
-              <Typography variant="h6">Proveedores</Typography>
-              <Typography variant="h4">{stats.proveedores}</Typography>
-            </div>
-          </Paper>
+          <Card title="Proveedores" value={stats.proveedores} icon={<LocalShippingIcon />} />
         </Grid>
 
-        {/* Comercios */}
         <Grid item xs={12} sm={6} md={4}>
-          <Paper sx={cardStyle}>
-            <StoreIcon sx={{ fontSize: 50 }} />
-            <div>
-              <Typography variant="h6">Comercios</Typography>
-              <Typography variant="h4">{stats.comercios}</Typography>
-            </div>
-          </Paper>
+          <Card title="Comerciantes" value={stats.comercios} icon={<StoreIcon />} />
         </Grid>
 
-        {/* Almacenes */}
         <Grid item xs={12} sm={6} md={4}>
-          <Paper sx={cardStyle}>
-            <WarehouseIcon sx={{ fontSize: 50 }} />
-            <div>
-              <Typography variant="h6">Almacenes</Typography>
-              <Typography variant="h4">{stats.almacenes}</Typography>
-            </div>
-          </Paper>
+          <Card title="Almacenes" value={stats.almacenes} icon={<WarehouseIcon />} />
         </Grid>
 
-        {/* Productos */}
         <Grid item xs={12} sm={6} md={4}>
-          <Paper sx={cardStyle}>
-            <InventoryIcon sx={{ fontSize: 50 }} />
-            <div>
-              <Typography variant="h6">Productos</Typography>
-              <Typography variant="h4">{stats.productos}</Typography>
-            </div>
-          </Paper>
+          <Card title="Productos" value={stats.productos} icon={<InventoryIcon />} />
         </Grid>
 
-        {/* Pedidos */}
         <Grid item xs={12} sm={6} md={4}>
-          <Paper sx={cardStyle}>
-            <ShoppingCartIcon sx={{ fontSize: 50 }} />
-            <div>
-              <Typography variant="h6">Pedidos</Typography>
-              <Typography variant="h4">{stats.pedidos}</Typography>
-            </div>
-          </Paper>
+          <Card title="Facturas" value={stats.facturas} icon={<ReceiptIcon />} />
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={4}>
+          <Card title="Pedidos" value={stats.pedidos} icon={<ShoppingCartIcon />} />
         </Grid>
       </Grid>
     </>

@@ -15,7 +15,7 @@ public class AlmacenController {
 
     @GetMapping
     public List<Almacen> getAll() {
-        return almacenService.getAllAlmacenes();
+        return almacenService.getAllAlmacen();
     }
 
     @GetMapping("/{id}")

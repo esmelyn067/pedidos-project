@@ -1,18 +1,24 @@
 import { useEffect, useState } from "react";
-import almacenesService from "../../api/almacenesService";
+import almacenesService from "./almacenesService";
 import {
   Paper,
   Typography,
   Button,
-  List,
-  ListItem,
-  ListItemText,
+  Table,
+  TableBody,
+  TableHead,
+  TableCell,
+  TableRow,
+  Stack
 } from "@mui/material";
 
-export default function AlmacenList({ onSelect, onCreate }) {
-  const [almacenes, setAlmacenes] = useState([]);
+import AlmacenForm from "./AlmacenForm";
 
-  const loadData = async () => {
+export default function AlmacenList() {
+  const [almacenes, setAlmacenes] = useState([]);
+  const [editing, setEditing] = useState(null);
+
+  const load = async () => {
     try {
       const res = await almacenesService.getAll();
       setAlmacenes(res.data);
@@ -22,34 +28,68 @@ export default function AlmacenList({ onSelect, onCreate }) {
   };
 
   useEffect(() => {
-    loadData();
+    load();
   }, []);
+
+  const remove = async (id) => {
+    if (!window.confirm("¿Eliminar almacén?")) return;
+
+    try {
+      await almacenesService.delete(id);
+      load();
+    } catch (error) {
+      console.error("Error borrando almacén:", error);
+    }
+  };
 
   return (
     <Paper sx={{ padding: 3 }}>
-      <Typography variant="h5" gutterBottom>
-        Almacenes
+      <Typography variant="h4" gutterBottom>
+        Gestión de Almacenes
       </Typography>
 
-      <Button variant="contained" onClick={onCreate} sx={{ mb: 2 }}>
-        Nuevo Almacén
-      </Button>
+      <AlmacenForm
+        editing={editing}
+        onSaved={() => {
+          setEditing(null);
+          load();
+        }}
+        onCancel={() => setEditing(null)}
+      />
 
-      <List>
-        {almacenes.map((almacen) => (
-          <ListItem
-            key={almacen.id}
-            divider
-            button
-            onClick={() => onSelect(almacen)}
-          >
-            <ListItemText
-              primary={almacen.name}
-              secondary={`Ubicación: ${almacen.location}`}
-            />
-          </ListItem>
-        ))}
-      </List>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>Nombre</TableCell>
+            <TableCell>Ubicación</TableCell>
+            <TableCell>Acciones</TableCell>
+          </TableRow>
+        </TableHead>
+
+        <TableBody>
+          {almacenes.map((a) => (
+            <TableRow key={a.id}>
+              <TableCell>{a.name}</TableCell>
+              <TableCell>{a.location}</TableCell>
+              <TableCell>
+                <Stack direction="row" spacing={1}>
+                  <Button variant="outlined" onClick={() => setEditing(a)}>
+                    Editar
+                  </Button>
+
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={() => remove(a.id)}
+                  >
+                    Eliminar
+                  </Button>
+                </Stack>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </Paper>
   );
 }

@@ -1,55 +1,100 @@
-import { useEffect, useState } from "react";
-import merchantsService from "../../api/merchantsService";
-import { 
-  Paper, 
-  Typography, 
-  Button, 
-  List, 
-  ListItem, 
-  ListItemText 
+import React, { useEffect, useState } from "react";
+import {
+  Paper,
+  Typography,
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Stack
 } from "@mui/material";
 
-export default function MerchantList({ onSelect, onCreate }) {
-  const [merchants, setMerchants] = useState([]);
+import MerchantForm from "./MerchantForm";
+import merchantsService from "./merchantsService";
 
-  const loadData = async () => {
+export default function MerchantList() {
+  const [merchants, setMerchants] = useState([]);
+  const [editing, setEditing] = useState(null);
+
+  const load = async () => {
     try {
       const res = await merchantsService.getAll();
       setMerchants(res.data);
     } catch (error) {
-      console.error("Error loading merchants:", error);
+      console.error("Error cargando comerciantes:", error);
+      alert("Error cargando comerciantes");
     }
   };
 
   useEffect(() => {
-    loadData();
+    load();
   }, []);
+
+  const remove = async (id) => {
+    if (!window.confirm("¿Eliminar este comerciante?")) return;
+
+    try {
+      await merchantsService.delete(id);
+      load();
+    } catch (error) {
+      console.error("Error eliminando comerciante:", error);
+      alert("No se pudo eliminar");
+    }
+  };
 
   return (
     <Paper sx={{ padding: 3 }}>
-      <Typography variant="h5" gutterBottom>
-        Comerciantes
+      <Typography variant="h4" gutterBottom>
+        Gestión de Comerciantes
       </Typography>
 
-      <Button variant="contained" onClick={onCreate} sx={{ mb: 2 }}>
-        Nuevo Comerciante
-      </Button>
+      <MerchantForm
+        editing={editing}
+        onSaved={() => {
+          setEditing(null);
+          load();
+        }}
+        onCancel={() => setEditing(null)}
+      />
 
-      <List>
-        {merchants.map((merchant) => (
-          <ListItem 
-            key={merchant.id} 
-            divider 
-            button 
-            onClick={() => onSelect(merchant)}
-          >
-            <ListItemText
-              primary={merchant.name}
-              secondary={merchant.address}
-            />
-          </ListItem>
-        ))}
-      </List>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>Nombre</TableCell>
+            <TableCell>Dirección</TableCell>
+            <TableCell>Teléfono</TableCell>
+            <TableCell>Email</TableCell>
+            <TableCell>Acciones</TableCell>
+          </TableRow>
+        </TableHead>
+
+        <TableBody>
+          {merchants.map((m) => (
+            <TableRow key={m.id}>
+              <TableCell>{m.name}</TableCell>
+              <TableCell>{m.address}</TableCell>
+              <TableCell>{m.phone}</TableCell>
+              <TableCell>{m.email}</TableCell>
+              <TableCell>
+                <Stack direction="row" spacing={1}>
+                  <Button variant="outlined" onClick={() => setEditing(m)}>
+                    Editar
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={() => remove(m.id)}
+                  >
+                    Eliminar
+                  </Button>
+                </Stack>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </Paper>
   );
 }
